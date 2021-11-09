@@ -1,0 +1,3 @@
+hello hadoop hello spark
+i love hadoop and spark
+i love you hadoop and scala
