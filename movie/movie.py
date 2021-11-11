@@ -8,6 +8,11 @@ def get_column(line, column_index1,column_index2):
         return (-1,-1)
     parts = line.split(',')
     return (int(parts[column_index1]), parts[column_index2])
+def get_column2(line, column_index1):
+    if 'userId' in line or 'movieId' in line:
+        return (-1, -1)
+    parts = line.split(',')
+    return (int(parts[column_index1]), parts[-1])
 
 # 对rating的数据进行过滤，返回对应的值
 def filter_rating(line, column_index,threshold):
@@ -35,12 +40,17 @@ def my_avg(x):
 def get_genres(line):
     if line==1:
         return (-1,-1)
-    parts = line.split('|')
+    parts = str(line).split('|')
     return (1,parts)
 # 我的每部电影评分
 def my_num(x):
     (key, (total, count)) = x
     return (key, count)
+
+#
+def movie_id(line):
+    handle_line = line.split(",")
+    return (int(handle_line[0]), 1)
 
 if __name__ == "__main__":
     sc =SparkContext("local", 'movie')
@@ -82,9 +92,12 @@ if __name__ == "__main__":
     print("电影总种类数: ", movie_type_lines.count())
     # 方法二
     movie_id_index_genres=2
-    movie_genres_rdd=movie_lines.map(lambda x:get_column(x, movie_id_index_movie,movie_id_index_genres))
-    movie_genres_rdd2=movie_genres_rdd.map(lambda x:get_genres(x[1])).filter(lambda x:x[0]>0).flatMapValues(lambda x:x)
-    print("电影总种类数：{}".format(movie_genres_rdd2.distinct().count()))
+    movie_genres_rdd=movie_lines.map(lambda x:get_column2(x, movie_id_index_movie))
+    print(movie_genres_rdd.take(5))
+    movie_genres_rdd2=movie_genres_rdd.map(lambda x:get_genres(x[1]))\
+        .filter(lambda x:x[0]>0).flatMapValues(lambda x:x)
+
+    print("电影总类数",movie_genres_rdd2.distinct().count())
 
     # ====================================================================================================
     # 4）	求取并显示电影平均评分为5分的电影数
@@ -122,6 +135,11 @@ if __name__ == "__main__":
     # 7）	求取并显示每部电影的评价次数
     number_rating_rdd=agg_rating_rdd.map(lambda x: my_num(x))
     print("每部电影的评价总次数为：{}".format(number_rating_rdd.collect()[:5]))
+
+    movie_ids = rating_lines.map(movie_id)
+    movie_ids = movie_ids.reduceByKey(lambda a,b: a + b)
+    movie_ids = movie_rdd.join(movie_ids)
+    print("问题（7）每部电影的评价次数", movie_ids.take(10))
     # =================================================================================================
 
 

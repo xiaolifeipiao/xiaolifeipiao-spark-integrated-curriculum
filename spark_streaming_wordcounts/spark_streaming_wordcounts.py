@@ -16,8 +16,8 @@ try:
     words = lines.flatMap(lambda line: line.split(" "))
 
     pairs = words.map(lambda x: (x, 1))
-    #counts = pairs.reduceByKey(lambda a, b: a+b)
-    #counts.pprint()
+    counts = pairs.reduceByKey(lambda a, b: a+b)
+    counts.pprint()
 
     print("hello world")
     counts = words.countByWindow(30, 30)
