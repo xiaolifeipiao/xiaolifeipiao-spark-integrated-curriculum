@@ -7,7 +7,6 @@ inputpath = 'input'
 outputpath = 'output'
 
 sc = SparkContext('local', 'wordcount')
-
 # 读取文件
 input = sc.textFile(inputpath)
 # 切分单词
