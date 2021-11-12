@@ -1,10 +1,4 @@
-PyCharm
-
-INSTALLATION INSTRUCTIONS
-===============================================================================
-
-  Linux Installation Instructions
-  ------------------------------------------------------------------------------
+Linux Installation Instructions
   1. Unpack the PyCharm distribution archive that you downloaded to
      where you wish to install the program. We will refer to this destination
      location as your {installation home} below.
@@ -24,9 +18,8 @@ INSTALLATION INSTRUCTIONS
       if using a 64-bit JDK), and set the -Xms and -Xmx parameters. To see how
       to do this, you can reference the vmoptions file under
       "{installation home}/bin" as a model.
+Changing the location of "config" and "system" directories
 
-  [OPTIONAL] Changing the location of "config" and "system" directories
-  ------------------------------------------------------------------------------
   By default, PyCharm stores all your settings under the ~/.PyCharmCE2019.2/config
   directory and uses ~/.PyCharmCE2019.2/system as a data cache.
   If you want to change these settings,
