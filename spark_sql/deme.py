@@ -184,9 +184,6 @@ km_evaluator = ClusteringEvaluator(predictionCol="prediction")
 silhouette = km_evaluator.evaluate(km_predictions)
 print("欧几里得距离的平方 = " + str(silhouette))
 
-km_aoc_evaluator = BinaryClassificationEvaluator().setMetricName("areaUnderROC")
-print("Area under ROC curve:",km_aoc_evaluator.evaluate(km_predictions))
-
 # Shows the result.
 # centers = km_model.
 # print("Cluster Centers: ")
