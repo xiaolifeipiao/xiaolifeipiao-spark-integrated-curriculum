@@ -14,12 +14,34 @@ from pyspark.ml.tuning import ParamGridBuilder, CrossValidator
 from pyspark.ml.evaluation import BinaryClassificationEvaluator, ClusteringEvaluator
 from pyspark.ml.feature import HashingTF,StopWordsRemover,IDF,Tokenizer
 
+
+# =======================================================================================================================
+import sys
+class Logger(object):
+    def __init__(self, filename='default.log', stream=sys.stdout):
+        self.terminal = stream
+        self.log = open(filename, 'a',encoding='utf-8')
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)
+
+    def flush(self):
+        pass
+
+sys.stdout = Logger("./log.txt", sys.stdout)
+sys.stderr = Logger("./log_1.txt", sys.stderr)		# redirect std err, if necessary
+
+# now it works
+print('print something')
+# =======================================================================================================================
+
 sc = SparkContext("local","Application")
 sqlContext = SQLContext(sc)
-path="input/20_newsgroups\\*"
+path="input/test\\*"
 start_time = time.time()
 newsGroupRowData=sc.wholeTextFiles(path)
-print("Number of documents read in is:",newsGroupRowData.count())
+print("文件数量:",newsGroupRowData.count())
 end_time = time.time()
 dtime = end_time - start_time
 print("文件读取==============================================================================================>")
@@ -41,7 +63,7 @@ print(id.take(5))
 #主题
 topics = filepaths.map(lambda filepath: filepath.split("/")[-2])
 print("处理主题==============================================================================================>")
-print("未去重",topics.take(5))
+print("未去重",topics.take(20))
 print("去重",topics.distinct().take(20))
 
 # 这个模型是在字符中
@@ -61,10 +83,11 @@ df.createOrReplaceTempView("newsgroups")
 # SQL可以在已注册为表的dataframe上运行
 results = sqlContext.sql("SELECT id,topic,text FROM newsgroups limit 5")
 print("查询数据==============================================================================================>")
-results.show()
+results.show(5)
 print("查询，去重，统计，分组，降序===========================================================================>")
 results = sqlContext.sql("select distinct topic, count(*) as cnt from newsgroups group by topic order by cnt desc limit 5")
-results.show()
+results.show(5
+             )
 print("统计comp==============================================================================================>")
 result_list = df[df.topic.like("comp%")].collect()
 new_df = sc.parallelize(result_list).toDF()
@@ -78,14 +101,18 @@ labeledNewsGroups.sample(False,0.3,10).show(5)
 
 # 测试，训练确定
 print("测试，训练确定========================================================================================>")
-train_set, test_set = labeledNewsGroups.randomSplit([0.9, 0.1], 12345)
+train_set, test_set = labeledNewsGroups.randomSplit([0.8, 0.2], 12345)
 print("总共数据:",labeledNewsGroups.count())
 print("训练数据:",train_set.count())
 print("测试数据",test_set.count())
 
+# 将字符串列转换成小写并按空格切分
 tokenizer = Tokenizer().setInputCol("text").setOutputCol("words")
+# 移除停顿词
 remover= StopWordsRemover().setInputCol("words").setOutputCol("filtered").setCaseSensitive(False)
+# 词频统计
 hashingTF = HashingTF().setNumFeatures(1000).setInputCol("filtered").setOutputCol("rawFeatures")
+# 文本tf-idf计算
 idf = IDF().setInputCol("rawFeatures").setOutputCol("features").setMinDocFreq(0)
 #
 
@@ -124,7 +151,7 @@ predictions.select("id","topic","probability","prediction","label").filter(predi
 predictions.sample(False,0.01,10).show(5)
 
 
-# ROC曲线
+# ROC曲线,模型评估
 evaluator = BinaryClassificationEvaluator().setMetricName("areaUnderROC")
 print("Area under ROC curve:",evaluator.evaluate(predictions))
 
@@ -141,24 +168,30 @@ print("Area under ROC curve for fitted model:",evaluator.evaluate(cvModel.transf
 
 
 # kmeans
-km = KMeans().setK(5).setSeed(1)
+km = KMeans(k=3).setK(5).setSeed(1)
+
 km_pipeline=Pipeline(stages=[tokenizer,remover,hashingTF,idf, km])
 km_model=km_pipeline.fit(train_set)
 km_predictions = km_model.transform(test_set)
+km_predictions.select('label',"features").sample(False,0.01,10).show(5)
 # km_predictions.select("id","topic","prediction","label").sample(False,0.01,10).show(5)
 # km_predictions.select("id","topic","prediction","label").filter(km_predictions.topic.like("comp%")).sample(False,0.1,10).show(5)
 km_predictions.sample(False,0.01,10).show(5)
 # Evaluate clustering by computing Silhouette score
-evaluator = ClusteringEvaluator()
+# 模型评估
+km_evaluator = ClusteringEvaluator(predictionCol="prediction")
 
-silhouette = evaluator.evaluate(predictions)
-print("Silhouette with squared euclidean distance = " + str(silhouette))
+silhouette = km_evaluator.evaluate(km_predictions)
+print("欧几里得距离的平方 = " + str(silhouette))
+
+km_aoc_evaluator = BinaryClassificationEvaluator().setMetricName("areaUnderROC")
+print("Area under ROC curve:",km_aoc_evaluator.evaluate(km_predictions))
 
 # Shows the result.
-centers = model.clusterCenters()
-print("Cluster Centers: ")
-for center in centers:
-    print(center)
+# centers = km_model.
+# print("Cluster Centers: ")
+# for center in centers:
+#     print(center)
 # km_evaluator = BinaryClassificationEvaluator().setMetricName("areaUnderROC")
 # print("Area under ROC curve:",km_evaluator.evaluate(km_predictions))
 # km_evaluator = ClusteringEvaluator()
