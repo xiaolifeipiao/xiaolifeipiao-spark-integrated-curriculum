@@ -1,6 +1,6 @@
 import sys
 
-def showWindow(rdd):
+def showHot(rdd):
     for (k, v) in rdd.collect():
         print(k,v)
 try:
@@ -18,7 +18,7 @@ try:
     # a)	统计每个时间段(自定)每个单词出现的总次数
     pairs = words.map(lambda x: (x, 1))
     counts = pairs.reduceByKey(lambda a, b: a+b)
-    # counts.pprint()
+    counts.pprint()
 
     # counts = words.countByWindow(10,10)
     # counts.pprint()
@@ -27,8 +27,8 @@ try:
     # windowedWordCounts.pprint()
     # ==================================================================================================================
     # b)	统计每个时间段，所有单词出现的总次数
-    # count=counts.map(lambda x:("all_times:",x[1])).reduceByKey(lambda x,y:x+y)
-    # count.pprint()
+    count=counts.map(lambda x:("all_times:",x[1])).reduceByKey(lambda x,y:x+y)
+    count.pprint()
 
 
 
@@ -36,7 +36,7 @@ try:
 
     # ==================================================================================================================
     # c)	统计每个时间段的热词
-    counts.foreachRDD(lambda r:showWindow(r))
+    counts.foreachRDD(lambda r:showHot(r))
 
 
 

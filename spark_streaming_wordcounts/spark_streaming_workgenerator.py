@@ -29,7 +29,7 @@ def get_words(file_path):
     for line in f.readlines():
         if is_all_whitespace(line):
             continue
-        words = line.split()
+        words = line.split(" ")
         r = r + words
     return r
 

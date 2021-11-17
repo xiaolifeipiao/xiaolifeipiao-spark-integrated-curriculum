@@ -88,16 +88,16 @@ if __name__ == "__main__":
     genres_lines = sc.parallelize(df['genres'])
     # 使用flatmap统计 genres 的每个类别的个数
     movie_type_lines = genres_lines.flatMap(lambda line:line.split("|")).map(lambda word: (word,1)).reduceByKey(lambda a, b : a + b)
-    movie_type_lines.foreach(print)
+    # movie_type_lines.foreach(print)
     print("电影总种类数: ", movie_type_lines.count())
     # 方法二
-    movie_id_index_genres=2
-    movie_genres_rdd=movie_lines.map(lambda x:get_column2(x, movie_id_index_movie))
-    print(movie_genres_rdd.take(5))
-    movie_genres_rdd2=movie_genres_rdd.map(lambda x:get_genres(x[1]))\
-        .filter(lambda x:x[0]>0).flatMapValues(lambda x:x)
-
-    print("电影总类数",movie_genres_rdd2.distinct().count())
+    # movie_id_index_genres=2
+    # movie_genres_rdd=movie_lines.map(lambda x:get_column2(x, movie_id_index_movie))
+    # print(movie_genres_rdd.take(5))
+    # movie_genres_rdd2=movie_genres_rdd.map(lambda x:get_genres(x[1]))\
+    #     .filter(lambda x:x[0]>0).flatMapValues(lambda x:x)
+    #
+    # print("电影总类数",movie_genres_rdd2.distinct().count())
 
     # ====================================================================================================
     # 4）	求取并显示电影平均评分为5分的电影数
@@ -108,7 +108,7 @@ if __name__ == "__main__":
     avg_rating_rdd = agg_rating_rdd.map(lambda x: my_avg(x))
     filtered_rating_rdd5 = avg_rating_rdd.filter(lambda x: x[1]== threshold5)
     rating_5_count = filtered_rating_rdd5.count()
-    print("电影平均评分等于5分",rating_5_count-1)
+    print("电影平均评分等于5分",rating_5_count)
     # 测试合并
     movie_5 = movie_rdd.take(5)
     # print(movie_5)
@@ -118,9 +118,9 @@ if __name__ == "__main__":
     output5 = result_rdd5.collect()[:5]
     print("电影平均分等于5分的数据 ",output5)
 
-    filtered_rating_rdd4 = avg_rating_rdd.filter(lambda x: x[1]>= threshold4)
+    filtered_rating_rdd4 = avg_rating_rdd.filter(lambda x: x[1]> threshold4)
     rating_4_count = filtered_rating_rdd4.count()
-    print("电影平均评分大于等于4分",rating_4_count - 1)
+    print("电影平均评分大于等于4分",rating_4_count)
     result_rdd4 = movie_rdd.join(filtered_rating_rdd4)
     output4 = result_rdd4.collect()[:5]
     print("电影平均评分大于等于4分的数据",output4)
@@ -136,10 +136,10 @@ if __name__ == "__main__":
     number_rating_rdd=agg_rating_rdd.map(lambda x: my_num(x))
     print("每部电影的评价总次数为：{}".format(number_rating_rdd.collect()[:5]))
 
-    movie_ids = rating_lines.map(movie_id)
-    movie_ids = movie_ids.reduceByKey(lambda a,b: a + b)
-    movie_ids = movie_rdd.join(movie_ids)
-    print("问题（7）每部电影的评价次数", movie_ids.take(10))
+    # movie_ids = rating_lines.map(movie_id)
+    # movie_ids = movie_ids.reduceByKey(lambda a,b: a + b)
+    # movie_ids = movie_rdd.join(movie_ids)
+    # print("问题（7）每部电影的评价次数", movie_ids.take(10))
     # =================================================================================================
 
 
