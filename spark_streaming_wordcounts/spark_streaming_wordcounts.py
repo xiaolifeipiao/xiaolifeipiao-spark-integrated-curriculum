@@ -1,5 +1,26 @@
 import sys
 
+
+# =======================================================================================================================
+import sys
+class Logger(object):
+    def __init__(self, filename='default.log', stream=sys.stdout):
+        self.terminal = stream
+        self.log = open(filename, 'a',encoding='utf-8')
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)
+
+    def flush(self):
+        pass
+
+sys.stdout = Logger("./log.txt", sys.stdout)
+sys.stderr = Logger("./log_1.txt", sys.stderr)		# redirect std err, if necessary
+
+# now it works
+print('print log')
+
 def showHot(rdd):
     for (k, v) in rdd.collect():
         print(k,v)
@@ -30,10 +51,6 @@ try:
     count=counts.map(lambda x:("all_times:",x[1])).reduceByKey(lambda x,y:x+y)
     count.pprint()
 
-
-
-
-
     # ==================================================================================================================
     # c)	统计每个时间段的热词
     counts.foreachRDD(lambda r:showHot(r))
@@ -53,3 +70,4 @@ try:
 except ImportError as e:
     print("Can not import Spark Modules", e)
     sys.exit(1)
+

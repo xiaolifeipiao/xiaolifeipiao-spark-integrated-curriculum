@@ -76,36 +76,37 @@ newsgroups = newsGroupRowData.map(lambda x: (x[0].split("/")[-1],x[1],x[0].split
 df = sqlContext.createDataFrame(newsgroups, schema)
 
 # 打印模型
-print("打印模型==============================================================================================>")
+print("打印模型=====================================================================================================>")
 df.printSchema()
 # 使用DataFrame创建临时视图
 df.createOrReplaceTempView("newsgroups")
 # SQL可以在已注册为表的dataframe上运行
 results = sqlContext.sql("SELECT id,topic,text FROM newsgroups limit 5")
-print("查询数据==============================================================================================>")
+print("查询数据======================================================================================================>")
 results.show(5)
-print("查询，去重，统计，分组，降序===========================================================================>")
+print("查询，去重，统计，分组，降序===================================================================================>")
 results = sqlContext.sql("select distinct topic, count(*) as cnt from newsgroups group by topic order by cnt desc limit 5")
-results.show(5
-             )
-print("统计comp==============================================================================================>")
+results.show(5)
+print("统计comp类别统计=================================================================================================>")
 result_list = df[df.topic.like("comp%")].collect()
 new_df = sc.parallelize(result_list).toDF()
 new_df.dropDuplicates().show()
-print("创建标签==============================================================================================>")
-labeledNewsGroups = df.withColumn("label",df.topic.like("comp%").cast("double"))
-labeledNewsGroups.sample(False,0.003,10).show(5)
-# 测试数据
-labeledNewsGroups.sample(False,0.3,10).show(5)
+
+# print("创建标签=====================================================================================================>")
+# labeledNewsGroups = df.withColumn("label",df.topic.like("comp%").cast("double"))
+# # labeledNewsGroups.sample(False,0.003,10).show(5)
+# # 测试数据
+# labeledNewsGroups.sample(False,0.3,10).show(5)
 
 
 # 测试，训练确定
-print("测试，训练确定========================================================================================>")
-train_set, test_set = labeledNewsGroups.randomSplit([0.8, 0.2], 12345)
-print("总共数据:",labeledNewsGroups.count())
+print("测试，训练确定（2:8）=========================================================================================>")
+train_set, test_set = df.randomSplit([0.8, 0.2], 12345)
+print("总共数据:",df.count())
 print("训练数据:",train_set.count())
 print("测试数据",test_set.count())
 
+# 特征处理
 # 将字符串列转换成小写并按空格切分
 tokenizer = Tokenizer().setInputCol("text").setOutputCol("words")
 # 移除停顿词
@@ -118,13 +119,13 @@ idf = IDF().setInputCol("rawFeatures").setOutputCol("features").setMinDocFreq(0)
 
 
 # Logistic回归
-lr = LogisticRegression().setRegParam(0.01).setThreshold(0.5)
-# lr = KMeans().setK(5).setSeed(1)
-pipeline=Pipeline(stages=[tokenizer,remover,hashingTF,idf, lr])
-print("Logistic回归========================================================================================>")
-print("Logistic回归特征列=",lr.getFeaturesCol())
-print("Logistic回归标签列=",lr.getLabelCol())
-print("Logistic回归的阈值=",lr.getThreshold())
+# lr = LogisticRegression().setRegParam(0.01).setThreshold(0.5)
+km_test = KMeans().setK(3).setSeed(1)
+pipeline=Pipeline(stages=[tokenizer,remover,hashingTF,idf, km_test])
+# print("Logistic回归测试========================================================================================>")
+# print("Logistic回归特征列=",lr.getFeaturesCol())
+# print("Logistic回归标签列=",lr.getLabelCol())
+# print("Logistic回归的阈值=",lr.getThreshold())
 print("=====================================================================================================")
 print("Tokenizer:",tokenizer.explainParams())
 print("=====================================================================================================")
@@ -133,54 +134,51 @@ print("=========================================================================
 print("HashTF",hashingTF.explainParams())
 print("=====================================================================================================")
 print("IDF:",idf.explainParams())
-print("=====================================================================================================")
-print("LogisticRegression:",lr.explainParams())
+# print("=====================================================================================================")
+# print("LogisticRegression:",lr.explainParams())
 print("=====================================================================================================")
 print("Pipeline:",pipeline.explainParams())
 print("=====================================================================================================")
-
 print("====================================================================================================>")
 print("去除的常用单词",remover.getStopWords())
 
 # 模型预测
-print("模型预测=============================================================================================>")
-model=pipeline.fit(train_set)
-predictions = model.transform(test_set)
-predictions.select("id","topic","probability","prediction","label").sample(False,0.01,10).show(5)
-predictions.select("id","topic","probability","prediction","label").filter(predictions.topic.like("comp%")).sample(False,0.1,10).show(5)
-predictions.sample(False,0.01,10).show(5)
+# print("模型预测=============================================================================================>")
+# model=pipeline.fit(train_set)
+# predictions = model.transform(test_set)
+# predictions.select("id","topic","probability","prediction","label").sample(False,0.01,10).show(5)
+# predictions.select("id","topic","probability","prediction","label").filter(predictions.topic.like("comp%")).sample(False,0.1,10).show(5)
+# predictions.sample(False,0.01,10).show(5)
 
 
 # ROC曲线,模型评估
-evaluator = BinaryClassificationEvaluator().setMetricName("areaUnderROC")
-print("Area under ROC curve:",evaluator.evaluate(predictions))
-
-paramGrid = ParamGridBuilder() \
-    .addGrid(hashingTF.numFeatures,[1000,10000,100000]) \
-    .addGrid(idf.minDocFreq,[0,10,100]) \
-    .build()
-cv = CrossValidator().setEstimator(pipeline).setEvaluator(evaluator).setEstimatorParamMaps(paramGrid).setNumFolds(2)
-cvModel = cv.fit(train_set)
-print("Area under the ROC curve for best fitted model =",evaluator.evaluate(cvModel.transform(test_set)))
-print("Area under ROC curve for non-tuned model:",evaluator.evaluate(predictions))
-print("Area under ROC curve for fitted model:",evaluator.evaluate(cvModel.transform(test_set)))
-# print("Improvement:%.2f".format(evaluator.evaluate(cvModel.transform(test_set)) - evaluator.evaluate(predictions))*100 / evaluator.evaluate(predictions))
+# evaluator = BinaryClassificationEvaluator().setMetricName("areaUnderROC")
+# print("Area under ROC curve:",evaluator.evaluate(predictions))
+#
+# paramGrid = ParamGridBuilder() \
+#     .addGrid(hashingTF.numFeatures,[1000,10000,100000]) \
+#     .addGrid(idf.minDocFreq,[0,10,100]) \
+#     .build()
+# cv = CrossValidator().setEstimator(pipeline).setEvaluator(evaluator).setEstimatorParamMaps(paramGrid).setNumFolds(2)
+# cvModel = cv.fit(train_set)
+# print("Area under the ROC curve for best fitted model =",evaluator.evaluate(cvModel.transform(test_set)))
+# print("Area under ROC curve for non-tuned model:",evaluator.evaluate(predictions))
+# print("Area under ROC curve for fitted model:",evaluator.evaluate(cvModel.transform(test_set)))
+# # print("Improvement:%.2f".format(evaluator.evaluate(cvModel.transform(test_set)) - evaluator.evaluate(predictions))*100 / evaluator.evaluate(predictions))
 
 
 # kmeans
-km = KMeans(k=3).setK(5).setSeed(1)
-
+km = KMeans().setK(3).setSeed(1)
 km_pipeline=Pipeline(stages=[tokenizer,remover,hashingTF,idf, km])
 km_model=km_pipeline.fit(train_set)
 km_predictions = km_model.transform(test_set)
-km_predictions.select('label',"features").sample(False,0.01,10).show(5)
+# km_predictions.select('label',"features").sample(False,0.01,10).show(5)
 # km_predictions.select("id","topic","prediction","label").sample(False,0.01,10).show(5)
 # km_predictions.select("id","topic","prediction","label").filter(km_predictions.topic.like("comp%")).sample(False,0.1,10).show(5)
 km_predictions.sample(False,0.01,10).show(5)
 # Evaluate clustering by computing Silhouette score
 # 模型评估
 km_evaluator = ClusteringEvaluator(predictionCol="prediction")
-
 silhouette = km_evaluator.evaluate(km_predictions)
 print("欧几里得距离的平方 = " + str(silhouette))
 
@@ -211,3 +209,23 @@ print("欧几里得距离的平方 = " + str(silhouette))
 # plt.xlabel('K - Number of clusters')
 # plt.ylabel('WCSS')
 # plt.show()
+
+def find_k():
+    cost = []
+    for k in range(2, 10):
+        km_test= KMeans().setK(k).setSeed(1)
+        km_pipeline_test=Pipeline(stages=[tokenizer,remover,hashingTF,idf, km_test])
+        km_model_test=km_pipeline_test.fit(train_set)
+        km_predictions_test = km_model_test.transform(test_set)
+        km_evaluator_test= ClusteringEvaluator(predictionCol="prediction")
+        silhouette_test = km_evaluator_test.evaluate(km_predictions_test)
+        # mode = kmeans.fit(data)
+        # 在pyspark3.0中使用 ClusteringEvaluator代替了model.computeCost(idf_data)
+        cost.append(silhouette_test)
+    print(cost)
+    # 可视化
+    # plt.plot(range(2, 10), cost)
+    # plt.xlabel('k')
+    # plt.ylabel('cost')
+    # plt.show()
+find_k()

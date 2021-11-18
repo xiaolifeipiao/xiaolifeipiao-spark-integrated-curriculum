@@ -1,6 +1,28 @@
 import pandas as pd
 from pyspark import SparkContext
 
+
+
+# =======================================================================================================================
+import sys
+class Logger(object):
+    def __init__(self, filename='default.log', stream=sys.stdout):
+        self.terminal = stream
+        self.log = open(filename, 'a',encoding='utf-8')
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)
+
+    def flush(self):
+        pass
+
+sys.stdout = Logger("./log.txt", sys.stdout)
+sys.stderr = Logger("./log_1.txt", sys.stderr)		# redirect std err, if necessary
+
+# now it works
+print('print log')
+
 # ===============================================================
 # 获取列进行遍历返回元组（）
 def get_column(line, column_index1,column_index2):

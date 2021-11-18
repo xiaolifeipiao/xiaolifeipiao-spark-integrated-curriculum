@@ -1,0 +1,132 @@
+print log
+文件数量: 670
+文件读取==============================================================================================>
+读取文件耗时 78.9
+展示文件==============================================================================================>
+[('file:/C:/Users/19215/Desktop/xiaolifeipiao-spark-integrated-curriculum/spark_sql/input/test/alt.atheism/52499', 'Xref: cantaloupe.srv.cs.cmu.edu alt.atheism:52499 alt.atheism.)]
+处理路径==============================================================================================>
+['file:/C:/Users/19215/Desktop/xiaolifeipiao-spark-integrated-curriculum/spark_sql/input/test/alt.atheism/53092', 'file:/C:/Users/19215/Desktop/xiaolifeipiao-spark-integrated-curriculum/spark_sql/input/test/comp.windows.x/66869', 'file:/C:/Users/19215/Desktop/xiaolifeipiao-spark-integrated-curriculum/spark_sql/input/test/comp.windows.x/66932', 'file:/C:/Users/19215/Desktop/xiaolifeipiao-spark-integrated-curriculum/spark_sql/input/test/alt.atheism/51223', 'file:/C:/Users/19215/Desktop/xiaolifeipiao-spark-integrated-curriculum/spark_sql/input/test/comp.windows.x/66908']
+处理文本==============================================================================================>
+['Xref: cantaloupe.srv.cs.cmu.edu alt.atheism:52499 alt.atheism.moderated:744 news.answers:7494 alt.answers:181\nPath: cantaloupe.srv.cs.cmu.edu!rochester!udel!darwin.sura.net!haven.umd.edu!uunet!pipex!ibmpcug!mantis!mathew\nFrom: mathew <mathew@mantis.co.uk>\nNewsgroups: alt.atheism,alt.atheism.moderated,news.answers,alt.answers\nSubject: Alt.Atheism FAQ: Frequently Asked Questions\nSummary: Please read this file before posting to alt.atheism\nKeywords: FAQ, atheism\nMessage-ID: <19930413093955@mantis.co.uk>\nDate: Tue, 13 Apr 1993 09:39:55 GMT\nExpires: Fri, 14 May 1993 09:39:55 GMT\nFollowup-To: alt.atheism\nDistribution: world\nOrganization: Mantis Consultants, Cambridge. UK.\nApproved: ]
+处理id==============================================================================================>
+['49960', '51060', '51119', '51120', '51121']
+处理主题==============================================================================================>
+未去重 ['alt.atheism', 'alt.atheism', 'alt.atheism', 'alt.atheism', 'alt.atheism', 'alt.atheism', 'alt.atheism', 'alt.atheism', 'alt.atheism', 'alt.atheism', 'alt.atheism', 'alt.atheism', 'alt.atheism', 'alt.atheism', 'alt.atheism', 'alt.atheism', 'alt.atheism', 'alt.atheism', 'alt.atheism', 'alt.atheism']
+去重 ['alt.atheism', 'comp.graphics', 'comp.windows.x']
+打印模型=====================================================================================================>
+root
+ |-- id: string (nullable = true)
+ |-- text: string (nullable = true)
+ |-- topic: string (nullable = true)
+
+查询数据======================================================================================================>
++-----+-----------+--------------------+
+|   id|      topic|                text|
++-----+-----------+--------------------+
+|49960|alt.atheism|Xref: cantaloupe....|
+|51060|alt.atheism|Xref: cantaloupe....|
+|51119|alt.atheism|Newsgroups: alt.a...|
+|51120|alt.atheism|Xref: cantaloupe....|
+|51121|alt.atheism|Xref: cantaloupe....|
++-----+-----------+--------------------+
+
+查询，去重，统计，分组，降序===================================================================================>
++--------------+---+
+|         topic|cnt|
++--------------+---+
+|   alt.atheism|236|
+| comp.graphics|220|
+|comp.windows.x|214|
++--------------+---+
+
+统计comp类别统计=================================================================================================>
++-----+--------------------+--------------+
+|   id|                text|         topic|
++-----+--------------------+--------------+
+|38337|Path: cantaloupe....| comp.graphics|
+|66970|Xref: cantaloupe....|comp.windows.x|
+|38371|Xref: cantaloupe....| comp.graphics|
+|37959|Path: cantaloupe....| comp.graphics|
+|66992|Path: cantaloupe....|comp.windows.x|
+|38234|Path: cantaloupe....| comp.graphics|
+|38241|Xref: cantaloupe....| comp.graphics|
+|38256|Newsgroups: comp....| comp.graphics|
+|38395|Path: cantaloupe....| comp.graphics|
+|66417|Path: cantaloupe....|comp.windows.x|
+|38384|Xref: cantaloupe....| comp.graphics|
+|66938|Newsgroups: comp....|comp.windows.x|
+|67059|Newsgroups: comp....|comp.windows.x|
+|66880|Path: cantaloupe....|comp.windows.x|
+|38272|Xref: cantaloupe....| comp.graphics|
+|38227|Newsgroups: comp....| comp.graphics|
+|38285|Path: cantaloupe....| comp.graphics|
+|66957|Newsgroups: comp....|comp.windows.x|
+|66991|Path: cantaloupe....|comp.windows.x|
+|37958|Path: cantaloupe....| comp.graphics|
++-----+--------------------+--------------+
+only showing top 20 rows
+
+创建标签=====================================================================================================>
++-----+--------------------+-----------+-----+
+|   id|                text|      topic|label|
++-----+--------------------+-----------+-----+
+|51120|Xref: cantaloupe....|alt.atheism|  0.0|
+|51124|Newsgroups: alt.a...|alt.atheism|  0.0|
+|51144|Xref: cantaloupe....|alt.atheism|  0.0|
+|51146|Path: cantaloupe....|alt.atheism|  0.0|
+|51147|Path: cantaloupe....|alt.atheism|  0.0|
++-----+--------------------+-----------+-----+
+only showing top 5 rows
+
+测试，训练确定（2:8）=========================================================================================>
+总共数据: 670
+训练数据: 525
+测试数据 145
+=====================================================================================================
+Tokenizer: inputCol: input column name. (current: text)
+outputCol: output column name. (default: Tokenizer_573f5c29d8b4__output, current: words)
+=====================================================================================================
+Remover caseSensitive: whether to do a case sensitive comparison over the stop words (default: False, current: False)
+inputCol: input column name. (current: words)
+locale: locale of the input. ignored when case sensitive is true (default: zh_CN)
+outputCol: output column name. (default: StopWordsRemover_f35788b5b837__output, current: filtered)
+stopWords: The words to be filtered out (default: ['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', 'her', 'hers', 'herself', 'it', 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', 'these', 'those', 'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', 'should', 'now', "i'll", "you'll", "he'll", "she'll", "we'll", "they'll", "i'd", "you'd", "he'd", "she'd", "we'd", "they'd", "i'm", "you're", "he's", "she's", "it's", "we're", "they're", "i've", "we've", "you've", "they've", "isn't", "aren't", "wasn't", "weren't", "haven't", "hasn't", "hadn't", "don't", "doesn't", "didn't", "won't", "wouldn't", "shan't", "shouldn't", "mustn't", "can't", "couldn't", 'cannot', 'could', "here's", "how's", "let's", 'ought', "that's", "there's", "what's", "when's", "where's", "who's", "why's", 'would'])
+=====================================================================================================
+HashTF binary: If True, all non zero counts are set to 1. This is useful for discrete probabilistic models that model binary events rather than integer counts. Default False. (default: False)
+inputCol: input column name. (current: filtered)
+numFeatures: number of features. (default: 262144, current: 1000)
+outputCol: output column name. (default: HashingTF_ddb7a31fff53__output, current: rawFeatures)
+=====================================================================================================
+IDF: inputCol: input column name. (current: rawFeatures)
+minDocFreq: minimum number of documents in which a term should appear for filtering (default: 0, current: 0)
+outputCol: output column name. (default: IDF_b26c61e4fa16__output, current: features)
+=====================================================================================================
+Pipeline: stages: a list of pipeline stages (current: [Tokenizer_573f5c29d8b4, StopWordsRemover_f35788b5b837, HashingTF_ddb7a31fff53, IDF_b26c61e4fa16, LogisticRegression_de47f2da96d1])
+=====================================================================================================
+====================================================================================================>
+去除的常用单词 ['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', 'her', 'hers', 'herself', 'it', 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', 'these', 'those', 'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', 'should', 'now', "i'll", "you'll", "he'll", "she'll", "we'll", "they'll", "i'd", "you'd", "he'd", "she'd", "we'd", "they'd", "i'm", "you're", "he's", "she's", "it's", "we're", "they're", "i've", "we've", "you've", "they've", "isn't", "aren't", "wasn't", "weren't", "haven't", "hasn't", "hadn't", "don't", "doesn't", "didn't", "won't", "wouldn't", "shan't", "shouldn't", "mustn't", "can't", "couldn't", 'cannot', 'could', "here's", "how's", "let's", 'ought', "that's", "there's", "what's", "when's", "where's", "who's", "why's", 'would']
++-----+--------------------+
+|label|            features|
++-----+--------------------+
+|  0.0|(1000,[6,8,10,15,...|
+|  0.0|(1000,[1,21,50,53...|
+|  1.0|(1000,[11,16,41,7...|
++-----+--------------------+
+
++-----+--------------------+--------------+-----+--------------------+--------------------+--------------------+--------------------+----------+
+|   id|                text|         topic|label|               words|            filtered|         rawFeatures|            features|prediction|
++-----+--------------------+--------------+-----+--------------------+--------------------+--------------------+--------------------+----------+
+|51187|Path: cantaloupe....|   alt.atheism|  0.0|[path:, cantaloup...|[path:, cantaloup...|(1000,[6,8,10,15,...|(1000,[6,8,10,15,...|         0|
+|51262|Path: cantaloupe....|   alt.atheism|  0.0|[path:, cantaloup...|[path:, cantaloup...|(1000,[1,21,50,53...|(1000,[1,21,50,53...|         0|
+|67035|Path: cantaloupe....|comp.windows.x|  1.0|[path:, cantaloup...|[path:, cantaloup...|(1000,[11,16,41,7...|(1000,[11,16,41,7...|         0|
++-----+--------------------+--------------+-----+--------------------+--------------------+--------------------+--------------------+----------+
+
+欧几里得距离的平方 = 0.9818177997884187
+[0.9818177997884187, 0.9818177997884187, 0.9818177997884187, 0.9818177997884187, 0.9818177997884187, 0.9518989805253717, 0.9518989805253717, 0.9303697554081927, 0.8814335986347056, 0.8814335986347056, 0.8814335986347056, 0.5814253468668773]
+
+
+
+
+
+
+
